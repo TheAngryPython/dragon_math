@@ -8,11 +8,15 @@ import json
 from socket import gethostname
 import pyAesCrypt
 import io
+import logging
 
 # настройка сохранения конфига
 appdata_folder = os.path.join(os.environ['LOCALAPPDATA'], 'EgTer')
 app_folder = os.path.join(appdata_folder, 'Math Dragon')
 config_file = os.path.join(app_folder, 'data')
+
+# настройка логгинга
+logging.basicConfig(filename=os.path.join(app_folder, 'log.txt'), level=logging.INFO)
 
 if not os.path.exists(appdata_folder):
     os.makedirs(appdata_folder)
