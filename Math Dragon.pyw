@@ -43,6 +43,11 @@ def cfg_save():
     pyAesCrypt.encryptFile(config_file, config_file+".aes", gethostname(), 64 * 1024)
     os.remove(config_file)
 
+def quit_game():
+    cfg_save()
+    pygame.quit()
+    quit()
+
 try:
     config['record']
 except:
@@ -104,7 +109,6 @@ sounds['menu_select'] = [pygame.mixer.Sound(os.path.join(sounds_folder, 'menu_se
 
 # настройка музыки
 music = {name: os.path.join(music_folder, name) for name in os.listdir(music_folder)}
-print(music)
 
 # Задаем цвета
 WHITE = (255, 255, 255)
@@ -282,37 +286,42 @@ clock = pygame.time.Clock()
 player = Player()
 BackGround = Background()
 all_sprites.add(player)
-bgtime = time.time()
 detect = True
 
-def make_global(*ar):
-    l = []
-    for a in ar:
-        l.append(a)
-    return l
+def set_difficulty(c=None, val=None, name=None):
+    lst = {
+        'Hard': {'speed': -5, 'mx': 9999, 'ex': 10, 'ex_next': 100},
+        'Medium': {'speed': -3, 'mx': 999, 'ex': 4, 'ex_next': 20},
+        'Easy': {'speed': -1, 'mx': 9, 'ex': 1, 'ex_next': 3},
+        }
+
+    global SPEED_EX, mx, SPEED_EX_NEXT_SCORE, EX_ADD
+    if name == None:
+        SPEED_EX_NEXT_SCORE = lst[c[0]]['ex_next']
+        EX_ADD = lst[c[0]]['ex']
+        SPEED_EX = lst[c[0]]['speed']
+        mx = lst[c[0]]['mx']
+        difficulty = c[0]
+    else:
+        SPEED_EX_NEXT_SCORE = lst[name]['ex_next']
+        EX_ADD = lst[name]['ex']
+        SPEED_EX = lst[name]['speed']
+        mx = lst[name]['mx']
+        difficulty = name
 
 # Цикл игры
 running = True
 def start():
     # exec(eval('global '+', '.join(make_global(*globals()))))
-    global __name__, username, __doc__, __package__, __loader__, __spec__, __annotations__, __builtins__, __file__, pygame, pygame_menu, random, LIL_ENDIAN, BIG_ENDIAN, YV12_OVERLAY, IYUV_OVERLAY, YUY2_OVERLAY, UYVY_OVERLAY, YVYU_OVERLAY, SWSURFACE, HWSURFACE, RESIZABLE, ASYNCBLIT, OPENGL, OPENGLBLIT, ANYFORMAT, HWPALETTE, DOUBLEBUF, FULLSCREEN, HWACCEL, SRCCOLORKEY, RLEACCELOK, RLEACCEL, SRCALPHA, PREALLOC, NOFRAME, GL_RED_SIZE, GL_GREEN_SIZE, GL_BLUE_SIZE, GL_ALPHA_SIZE, GL_BUFFER_SIZE, GL_DOUBLEBUFFER, GL_DEPTH_SIZE, GL_STENCIL_SIZE, GL_ACCUM_RED_SIZE, GL_ACCUM_GREEN_SIZE, GL_ACCUM_BLUE_SIZE, GL_ACCUM_ALPHA_SIZE, GL_STEREO, GL_MULTISAMPLEBUFFERS, GL_MULTISAMPLESAMPLES, GL_SWAP_CONTROL, GL_ACCELERATED_VISUAL, TIMER_RESOLUTION, AUDIO_U8, AUDIO_S8, AUDIO_U16LSB, AUDIO_S16LSB, AUDIO_U16MSB, AUDIO_S16MSB, AUDIO_U16, AUDIO_S16, AUDIO_U16SYS, AUDIO_S16SYS, SCRAP_TEXT, SCRAP_BMP, SCRAP_PPM, SCRAP_PBM, SCRAP_CLIPBOARD, SCRAP_SELECTION, BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_MIN, BLEND_MAX, BLEND_RGB_ADD, BLEND_RGB_SUB, BLEND_RGB_MULT, BLEND_RGB_MIN, BLEND_RGB_MAX, BLEND_RGBA_ADD, BLEND_RGBA_SUB, BLEND_RGBA_MULT, BLEND_RGBA_MIN, BLEND_RGBA_MAX, BLEND_PREMULTIPLIED, NOEVENT, ACTIVEEVENT, KEYDOWN, KEYUP, MOUSEMOTION, MOUSEBUTTONDOWN, MOUSEBUTTONUP, JOYAXISMOTION, JOYBALLMOTION, JOYHATMOTION, JOYBUTTONDOWN, JOYBUTTONUP, VIDEORESIZE, VIDEOEXPOSE, QUIT, SYSWMEVENT, USEREVENT, NUMEVENTS, HAT_CENTERED, HAT_UP, HAT_RIGHTUP, HAT_RIGHT, HAT_RIGHTDOWN, HAT_DOWN, HAT_LEFTDOWN, HAT_LEFT, HAT_LEFTUP, BUTTON_LEFT, BUTTON_MIDDLE, BUTTON_RIGHT, AUDIODEVICEADDED, AUDIODEVICEREMOVED, FINGERMOTION, FINGERDOWN, FINGERUP, MULTIGESTURE, MOUSEWHEEL, TEXTINPUT, TEXTEDITING, WINDOWEVENT, WINDOWEVENT_CLOSE, BUTTON_WHEELUP, BUTTON_WHEELDOWN, AUDIO_ALLOW_FREQUENCY_CHANGE, AUDIO_ALLOW_FORMAT_CHANGE, AUDIO_ALLOW_CHANNELS_CHANGE, AUDIO_ALLOW_ANY_CHANGE, DROPFILE, DROPTEXT, DROPBEGIN, DROPCOMPLETE, BUTTON_X1, BUTTON_X2, K_UNKNOWN, K_FIRST, K_BACKSPACE, K_TAB, K_CLEAR, K_RETURN, K_PAUSE, K_ESCAPE, K_SPACE, K_EXCLAIM, K_QUOTEDBL, K_HASH, K_DOLLAR, K_AMPERSAND, K_QUOTE, K_LEFTPAREN, K_RIGHTPAREN, K_ASTERISK, K_PLUS, K_COMMA, K_MINUS, K_PERIOD, K_SLASH, K_0, K_1, K_2, K_3, K_4, K_5, K_6, K_7, K_8, K_9, K_COLON, K_SEMICOLON, K_LESS, K_EQUALS, K_GREATER, K_QUESTION, K_AT, K_LEFTBRACKET, K_BACKSLASH, K_RIGHTBRACKET, K_CARET, K_UNDERSCORE, K_BACKQUOTE, K_a, K_b, K_c, K_d, K_e, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_m, K_n, K_o, K_p, K_q, K_r, K_s, K_t, K_u, K_v, K_w, K_x, K_y, K_z, K_DELETE, K_KP0, K_KP1, K_KP2, K_KP3, K_KP4, K_KP5, K_KP6, K_KP7, K_KP8, K_KP9, K_KP_PERIOD, K_KP_DIVIDE, K_KP_MULTIPLY, K_KP_MINUS, K_KP_PLUS, K_KP_ENTER, K_KP_EQUALS, K_UP, K_DOWN, K_RIGHT, K_LEFT, K_INSERT, K_HOME, K_END, K_PAGEUP, K_PAGEDOWN, K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F8, K_F9, K_F10, K_F11, K_F12, K_F13, K_F14, K_F15, K_NUMLOCK, K_CAPSLOCK, K_SCROLLOCK, K_RSHIFT, K_LSHIFT, K_RCTRL, K_LCTRL, K_RALT, K_LALT, K_RMETA, K_LMETA, K_LSUPER, K_RSUPER, K_MODE, K_HELP, K_PRINT, K_SYSREQ, K_BREAK, K_MENU, K_POWER, K_EURO, K_LAST, KMOD_NONE, KMOD_LSHIFT, KMOD_RSHIFT, KMOD_LCTRL, KMOD_RCTRL, KMOD_LALT, KMOD_RALT, KMOD_LMETA, KMOD_RMETA, KMOD_NUM, KMOD_CAPS, KMOD_MODE, KMOD_CTRL, KMOD_SHIFT, KMOD_ALT, KMOD_META, USEREVENT_DROPFILE, Rect, color, Color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, __warningregistry__, font, clock, player, BackGround, bgtime, make_global, running
+    global __name__, difficulty, set_difficulty, username, __doc__, __package__, __loader__, __spec__, __annotations__, __builtins__, __file__, pygame, pygame_menu, random, LIL_ENDIAN, BIG_ENDIAN, YV12_OVERLAY, IYUV_OVERLAY, YUY2_OVERLAY, UYVY_OVERLAY, YVYU_OVERLAY, SWSURFACE, HWSURFACE, RESIZABLE, ASYNCBLIT, OPENGL, OPENGLBLIT, ANYFORMAT, HWPALETTE, DOUBLEBUF, FULLSCREEN, HWACCEL, SRCCOLORKEY, RLEACCELOK, RLEACCEL, SRCALPHA, PREALLOC, NOFRAME, GL_RED_SIZE, GL_GREEN_SIZE, GL_BLUE_SIZE, GL_ALPHA_SIZE, GL_BUFFER_SIZE, GL_DOUBLEBUFFER, GL_DEPTH_SIZE, GL_STENCIL_SIZE, GL_ACCUM_RED_SIZE, GL_ACCUM_GREEN_SIZE, GL_ACCUM_BLUE_SIZE, GL_ACCUM_ALPHA_SIZE, GL_STEREO, GL_MULTISAMPLEBUFFERS, GL_MULTISAMPLESAMPLES, GL_SWAP_CONTROL, GL_ACCELERATED_VISUAL, TIMER_RESOLUTION, AUDIO_U8, AUDIO_S8, AUDIO_U16LSB, AUDIO_S16LSB, AUDIO_U16MSB, AUDIO_S16MSB, AUDIO_U16, AUDIO_S16, AUDIO_U16SYS, AUDIO_S16SYS, SCRAP_TEXT, SCRAP_BMP, SCRAP_PPM, SCRAP_PBM, SCRAP_CLIPBOARD, SCRAP_SELECTION, BLEND_ADD, BLEND_SUB, BLEND_MULT, BLEND_MIN, BLEND_MAX, BLEND_RGB_ADD, BLEND_RGB_SUB, BLEND_RGB_MULT, BLEND_RGB_MIN, BLEND_RGB_MAX, BLEND_RGBA_ADD, BLEND_RGBA_SUB, BLEND_RGBA_MULT, BLEND_RGBA_MIN, BLEND_RGBA_MAX, BLEND_PREMULTIPLIED, NOEVENT, ACTIVEEVENT, KEYDOWN, KEYUP, MOUSEMOTION, MOUSEBUTTONDOWN, MOUSEBUTTONUP, JOYAXISMOTION, JOYBALLMOTION, JOYHATMOTION, JOYBUTTONDOWN, JOYBUTTONUP, VIDEORESIZE, VIDEOEXPOSE, QUIT, SYSWMEVENT, USEREVENT, NUMEVENTS, HAT_CENTERED, HAT_UP, HAT_RIGHTUP, HAT_RIGHT, HAT_RIGHTDOWN, HAT_DOWN, HAT_LEFTDOWN, HAT_LEFT, HAT_LEFTUP, BUTTON_LEFT, BUTTON_MIDDLE, BUTTON_RIGHT, AUDIODEVICEADDED, AUDIODEVICEREMOVED, FINGERMOTION, FINGERDOWN, FINGERUP, MULTIGESTURE, MOUSEWHEEL, TEXTINPUT, TEXTEDITING, WINDOWEVENT, WINDOWEVENT_CLOSE, BUTTON_WHEELUP, BUTTON_WHEELDOWN, AUDIO_ALLOW_FREQUENCY_CHANGE, AUDIO_ALLOW_FORMAT_CHANGE, AUDIO_ALLOW_CHANNELS_CHANGE, AUDIO_ALLOW_ANY_CHANGE, DROPFILE, DROPTEXT, DROPBEGIN, DROPCOMPLETE, BUTTON_X1, BUTTON_X2, K_UNKNOWN, K_FIRST, K_BACKSPACE, K_TAB, K_CLEAR, K_RETURN, K_PAUSE, K_ESCAPE, K_SPACE, K_EXCLAIM, K_QUOTEDBL, K_HASH, K_DOLLAR, K_AMPERSAND, K_QUOTE, K_LEFTPAREN, K_RIGHTPAREN, K_ASTERISK, K_PLUS, K_COMMA, K_MINUS, K_PERIOD, K_SLASH, K_0, K_1, K_2, K_3, K_4, K_5, K_6, K_7, K_8, K_9, K_COLON, K_SEMICOLON, K_LESS, K_EQUALS, K_GREATER, K_QUESTION, K_AT, K_LEFTBRACKET, K_BACKSLASH, K_RIGHTBRACKET, K_CARET, K_UNDERSCORE, K_BACKQUOTE, K_a, K_b, K_c, K_d, K_e, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_m, K_n, K_o, K_p, K_q, K_r, K_s, K_t, K_u, K_v, K_w, K_x, K_y, K_z, K_DELETE, K_KP0, K_KP1, K_KP2, K_KP3, K_KP4, K_KP5, K_KP6, K_KP7, K_KP8, K_KP9, K_KP_PERIOD, K_KP_DIVIDE, K_KP_MULTIPLY, K_KP_MINUS, K_KP_PLUS, K_KP_ENTER, K_KP_EQUALS, K_UP, K_DOWN, K_RIGHT, K_LEFT, K_INSERT, K_HOME, K_END, K_PAGEUP, K_PAGEDOWN, K_F1, K_F2, K_F3, K_F4, K_F5, K_F6, K_F7, K_F8, K_F9, K_F10, K_F11, K_F12, K_F13, K_F14, K_F15, K_NUMLOCK, K_CAPSLOCK, K_SCROLLOCK, K_RSHIFT, K_LSHIFT, K_RCTRL, K_LCTRL, K_RALT, K_LALT, K_RMETA, K_LMETA, K_LSUPER, K_RSUPER, K_MODE, K_HELP, K_PRINT, K_SYSREQ, K_BREAK, K_MENU, K_POWER, K_EURO, K_LAST, KMOD_NONE, KMOD_LSHIFT, KMOD_RSHIFT, KMOD_LCTRL, KMOD_RCTRL, KMOD_LALT, KMOD_RALT, KMOD_LMETA, KMOD_RMETA, KMOD_NUM, KMOD_CAPS, KMOD_MODE, KMOD_CTRL, KMOD_SHIFT, KMOD_ALT, KMOD_META, USEREVENT_DROPFILE, Rect, color, Color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, __warningregistry__, font, clock, player, BackGround, make_global, running
+
+    bgtime = time.time()
     config['games'] += 1
     next_nums()
-    volume = 0.9
-    for i in range(10):
-        pygame.mixer.music.set_volume(volume)
-        volume -= 0.1
-        time.sleep(0.1)
-    pygame.mixer.music.stop()
     pygame.mixer.music.load(music['game_1.ogg'])
     pygame.mixer.music.play(-1)
-    volume = 0
-    for i in range(10):
-        pygame.mixer.music.set_volume(volume)
-        volume += 0.1
-        time.sleep(0.1)
-    pygame.mixer.music.set_volume(1)
     while running:
+        # смена фона по таймеру
         if bgtime < time.time() - 90:
             BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
             bgtime = time.time()
@@ -323,13 +332,9 @@ def start():
         # Ввод процесса (события)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
-                cfg_save()
-                pygame.quit()
+                quit_game()
             elif event.type == pygame.K_ESCAPE:
-                running = False
-                cfg_save()
-                pygame.quit()
+                quit_game()
 
         if pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_w]:
               player.up()
@@ -363,8 +368,8 @@ def start():
                         SPEED_EX -= 1
                         SPEED_EX_NEXT = 0
                 else:
-                    cfg_save()
-                    raise SystemExit(100)
+                    random.choice(sounds['die']).play()
+                    # raise SystemExit(100)
                     running = False
                 break
 
@@ -388,22 +393,19 @@ def start():
 
         # После отрисовки всего, переворачиваем экран
         pygame.display.flip()
-    # running = True
-    pygame.quit()
 
-def set_difficulty(c, val):
-    lst = {
-        'Hard': {'speed': -5, 'mx': 9999, 'ex': 10, 'ex_next': 100},
-        'Medium': {'speed': -3, 'mx': 999, 'ex': 4, 'ex_next': 20},
-        'Easy': {'speed': -1, 'mx': 9, 'ex': 1, 'ex_next': 3},
-        }
+    die_text = f1.render('Вы проиграли!', 1, WHITE)
+    screen.blit(die_text, (WIDTH / 3, HEIGHT / 3))
+    pygame.display.flip()
+    cfg_save()
+    time.sleep(5)
 
-    global SPEED_EX, mx, SPEED_EX_NEXT_SCORE, EX_ADD
-    SPEED_EX_NEXT_SCORE = lst[c[0]]['ex_next']
-    EX_ADD = lst[c[0]]['ex']
-    SPEED_EX = lst[c[0]]['speed']
-    mx = lst[c[0]]['mx']
-    difficulty = c[0]
+    running = True
+    score = 0
+    SPEED_EX = -1
+    pygame.mixer.music.load(music['menu.ogg'])
+    pygame.mixer.music.play(-1)
+    set_difficulty(name=difficulty)
 
 def set_name(name):
     global username
@@ -411,14 +413,24 @@ def set_name(name):
 
 # музыка меню
 pygame.mixer.music.load(music['menu.ogg'])
-pygame.mixer.music.play()
+pygame.mixer.music.play(-1)
+
+menu_theme = pygame_menu.themes.THEME_DARK
+menu_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL
+
+menu_bg = pygame_menu.baseimage.BaseImage(
+    image_path=os.path.join(bg_folder, random.choice(os.listdir(bg_folder))),
+    drawing_mode=pygame_menu.baseimage.IMAGE_MODE_REPEAT_XY
+)
+menu_theme.background_color = menu_bg
+# menu_theme.widget_selection_effect = pygame_menu.widgets.LeftArrowSelection1
 
 menu = pygame_menu.Menu(400, 600, 'Math Dragon',
-                        theme=pygame_menu.themes.THEME_DARK)
+                        theme=menu_theme)
 menu.add_text_input('Name: ', default=username, onchange=set_name)
 menu.add_selector('Difficulty: ', [('Easy', 1), ('Medium', 2), ('Hard', 3)], onchange=set_difficulty)
 menu.add_button('Play', start)
-menu.add_button('Quit', pygame_menu.events.EXIT)
+menu.add_button('Quit', quit_game)
 
 menu.mainloop(screen)
 
