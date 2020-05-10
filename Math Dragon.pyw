@@ -306,7 +306,7 @@ def start():
     pygame.mixer.music.stop()
     pygame.mixer.music.load(music['game_1.ogg'])
     pygame.mixer.music.play(-1)
-    volume = 0.
+    volume = 0
     for i in range(10):
         pygame.mixer.music.set_volume(volume)
         volume += 0.1
