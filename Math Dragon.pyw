@@ -256,15 +256,17 @@ record_played = False
 def next_nums():
     global nums, a_num, ex, t_num, detect
     detect = True
-    nums = [0,0,0]
-    nums[random.randint(0,2)] = 1
+
+    # создаём список
     a_num = random.randint(mn, mx)
-    for i in [0,1,2]:
-        if nums[i]:
-            nums[i] = (generate_true(a_num), 1)
-            t_num = i
-        else:
-            nums[i] = (generate_false(a_num), 0)
+    true = generate_true(a_num)
+    nums = [true, generate_false(a_num), generate_false(a_num)]
+    # мешаем список
+    random.shuffle(nums)
+    # ищем правильный вариант
+    for i in range(len(nums)):
+        if nums[i] == true:
+            true = i
 
     while 1:
         try:
@@ -275,8 +277,8 @@ def next_nums():
 
     ex = []
 
-    for i in [0,1,2]:
-        ex.append(Ex(f'{nums[i][0][0]} {nums[i][0][2]} {nums[i][0][1]}', i))
+    for i in range(3):
+        ex.append(Ex(f'{nums[i][0]} {nums[i][2]} {nums[i][1]}', i))
 
     for e in ex:
         all_sprites.add(e)
@@ -345,11 +347,12 @@ def start():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit_game()
-            elif event.type == pygame.K_ESCAPE:
-                quit_game()
-            elif event.dict['key'] == 113:
-                running = False
-                QUIT_TEXT = 'Выход...'
+            elif event.type == pygame.KEYDOWN:
+                if event.type == pygame.K_ESCAPE:
+                    quit_game()
+                elif event.dict['key'] == 113: # q
+                    running = False
+                    QUIT_TEXT = 'Выход...'
 
         if pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_w]:
               player.up()
