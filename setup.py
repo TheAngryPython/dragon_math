@@ -14,4 +14,4 @@ setup(  name = "Math Dragon",
         version = "0.1",
         description = "Math Dragon",
         options = {"build_exe": build_exe_options},
-        executables = [Executable("Math Dragon.pyw", base=base, icon='icon.ico')])
+        executables = [Executable("Math_Dragon.pyw", base=base, icon='icon.ico')])
