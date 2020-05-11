@@ -64,8 +64,6 @@ try:
 except:
     config['record_name'] = 'you'
 
-cfg_save()
-
 # настройка логгинга
 logging.basicConfig(filename=os.path.join(app_folder, 'log.txt'), level=logging.INFO)
 
@@ -92,7 +90,8 @@ pygame.display.init()
 all_sprites = pygame.sprite.Group()
 
 # настройка папки ассетов
-game_folder = os.path.dirname(__file__)
+# game_folder = os.path.dirname(__file__)
+game_folder = os.path.dirname(os.path.realpath('__file__'))
 assets_folder = os.path.join(game_folder, 'assets')
 img_folder = os.path.join(assets_folder, 'img')
 ex_img = {l: os.path.join(img_folder, 'ex_'+l+'.png') for l in '0123456789+'}
@@ -101,6 +100,9 @@ ex_font = os.path.join(fonts_folder, 'ex.ttf')
 bg_folder = os.path.join(img_folder, 'bg')
 sounds_folder = os.path.join(assets_folder, 'sounds')
 music_folder = os.path.join(sounds_folder, 'music')
+
+# иконка
+pygame.display.set_icon(pygame.image.load("icon.ico"))
 
 # настройка звуков
 sounds = {}
@@ -291,39 +293,45 @@ player = Player()
 BackGround = Background()
 all_sprites.add(player)
 detect = True
+LIFES = 3
+QUIT_TEXT = 'Вы проиграли!'
 
 def set_difficulty(c=None, val=None, name=None):
     lst = {
-        'Hard': {'speed': -5, 'mx': 9999, 'ex': 10, 'ex_next': 100},
-        'Medium': {'speed': -3, 'mx': 999, 'ex': 4, 'ex_next': 20},
-        'Easy': {'speed': -1, 'mx': 9, 'ex': 1, 'ex_next': 3},
+        'Hard': {'speed': -5, 'mx': 9999, 'ex': 10, 'ex_next': 100, 'lifes': 3},
+        'Medium': {'speed': -3, 'mx': 999, 'ex': 4, 'ex_next': 20, 'lifes': 3},
+        'Easy': {'speed': -1, 'mx': 9, 'ex': 1, 'ex_next': 3, 'lifes': 3},
         }
 
-    global SPEED_EX, mx, SPEED_EX_NEXT_SCORE, EX_ADD
+    global SPEED_EX, mx, SPEED_EX_NEXT_SCORE, EX_ADD, LIFES
     if name == None:
         SPEED_EX_NEXT_SCORE = lst[c[0]]['ex_next']
         EX_ADD = lst[c[0]]['ex']
         SPEED_EX = lst[c[0]]['speed']
         mx = lst[c[0]]['mx']
         difficulty = c[0]
+        LIFES = lst[c[0]]['lifes']
     else:
         SPEED_EX_NEXT_SCORE = lst[name]['ex_next']
         EX_ADD = lst[name]['ex']
         SPEED_EX = lst[name]['speed']
         mx = lst[name]['mx']
         difficulty = name
+        LIFES = lst[name]['lifes']
 
 # Цикл игры
 running = True
 def start():
     # exec(eval('global '+', '.join(make_global(*globals()))))
-    global __name__, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running
+    global QUIT_TEXT, LIFES, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running
 
     bgtime = time.time()
     config['games'] += 1
     next_nums()
     pygame.mixer.music.load(music['game_1.ogg'])
     pygame.mixer.music.play(-1)
+    pygame.mixer.music.queue(music['game_2.ogg'])
+    pygame.mixer.music.queue(music['game_3.ogg'])
     while running:
         # смена фона по таймеру
         if bgtime < time.time() - 90:
@@ -339,6 +347,9 @@ def start():
                 quit_game()
             elif event.type == pygame.K_ESCAPE:
                 quit_game()
+            elif event.dict['key'] == 113:
+                running = False
+                QUIT_TEXT = 'Выход...'
 
         if pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_w]:
               player.up()
@@ -358,7 +369,6 @@ def start():
                     PLAYER_LEVEL = 2
                 if PLAYER_LEVEL == t_num:
                     random.choice(sounds['true']).play()
-                    BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
                     score += EX_ADD
                     if score > config['record']:
                         if record_played == False:
@@ -372,9 +382,13 @@ def start():
                         SPEED_EX -= 1
                         SPEED_EX_NEXT = 0
                 else:
-                    random.choice(sounds['die']).play()
-                    # raise SystemExit(100)
-                    running = False
+                    if LIFES == 0:
+                        random.choice(sounds['die']).play()
+                        # raise SystemExit(100)
+                        running = False
+                    else:
+                        LIFES -= 1
+                        random.choice(sounds['false']).play()
                 break
 
         # Обновление
@@ -391,6 +405,8 @@ def start():
         screen.blit(record_text, (10, 105))
         speed_text = f1.render('Скорость: '+str(-1 * SPEED_EX), 1, WHITE)
         screen.blit(speed_text, (10, 140))
+        lifes_text = f1.render('Ошибок осталось: '+str(LIFES), 1, WHITE)
+        screen.blit(lifes_text, (10, 175))
 
         # Рендеринг
         all_sprites.draw(screen)
@@ -398,12 +414,13 @@ def start():
         # После отрисовки всего, переворачиваем экран
         pygame.display.flip()
 
-    die_text = f1.render('Вы проиграли!', 1, WHITE)
+    die_text = f1.render(QUIT_TEXT, 1, WHITE)
     screen.blit(die_text, (WIDTH / 3, HEIGHT / 3))
     pygame.display.flip()
+    pygame.mixer.music.stop()
     cfg_save()
-    time.sleep(5)
-
+    time.sleep(3)
+    QUIT_TEXT = 'Вы проиграли!'
     running = True
     record_played = False
     score = 0
@@ -424,7 +441,7 @@ menu_theme = pygame_menu.themes.THEME_DARK
 menu_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL
 
 menu_bg = pygame_menu.baseimage.BaseImage(
-    image_path=os.path.join(bg_folder, random.choice(os.listdir(bg_folder))),
+    image_path=os.path.join(bg_folder, 'bg4.jpg'),
     drawing_mode=pygame_menu.baseimage.IMAGE_MODE_REPEAT_XY
 )
 menu_theme.background_color = menu_bg
