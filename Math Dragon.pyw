@@ -259,14 +259,14 @@ def next_nums():
 
     # создаём список
     a_num = random.randint(mn, mx)
-    true = generate_true(a_num)
-    nums = [true, generate_false(a_num), generate_false(a_num)]
+    t_num = generate_true(a_num)
+    nums = [t_num, generate_false(a_num), generate_false(a_num)]
     # мешаем список
     random.shuffle(nums)
     # ищем правильный вариант
     for i in range(len(nums)):
-        if nums[i] == true:
-            true = i
+        if nums[i] == t_num:
+            t_num = i
 
     while 1:
         try:
@@ -296,6 +296,7 @@ BackGround = Background()
 all_sprites.add(player)
 detect = True
 LIFES = 3
+sound_played = 0
 QUIT_TEXT = 'Вы проиграли!'
 
 def set_difficulty(c=None, val=None, name=None):
@@ -325,7 +326,7 @@ def set_difficulty(c=None, val=None, name=None):
 running = True
 def start():
     # exec(eval('global '+', '.join(make_global(*globals()))))
-    global QUIT_TEXT, LIFES, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running
+    global sound_played, QUIT_TEXT, LIFES, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running
 
     bgtime = time.time()
     config['games'] += 1
@@ -335,6 +336,7 @@ def start():
     pygame.mixer.music.queue(music['game_2.ogg'])
     pygame.mixer.music.queue(music['game_3.ogg'])
     while running:
+        sound_played = 0
         # смена фона по таймеру
         if bgtime < time.time() - 90:
             BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
@@ -371,12 +373,12 @@ def start():
                 else:
                     PLAYER_LEVEL = 2
                 if PLAYER_LEVEL == t_num:
-                    random.choice(sounds['true']).play()
                     score += EX_ADD
                     if score > config['record']:
                         if record_played == False:
                             random.choice(sounds['record']).play()
                             record_played = True
+                            sound_played = 1
                         config['record'] = score
                         config['record_name'] = username
                     SPEED_EX_NEXT += 1
@@ -384,6 +386,9 @@ def start():
                         random.choice(sounds['speed_up']).play()
                         SPEED_EX -= 1
                         SPEED_EX_NEXT = 0
+                        sound_played = 1
+                    if sound_played == 0:
+                        random.choice(sounds['true']).play()
                 else:
                     if LIFES == 0:
                         random.choice(sounds['die']).play()
