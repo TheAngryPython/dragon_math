@@ -201,7 +201,7 @@ class Player(pygame.sprite.Sprite):
         else:
             self.rot -= 1
             self.image = pygame.transform.rotate(self.images[self.im], self.rot)
-        if self.time < (TIME- self.anim_speed):
+        if self.time < (TIME - self.anim_speed):
             self.image = pygame.transform.rotate(self.images[self.im], self.rot)
             self.time = TIME
             self.im += 1
@@ -399,10 +399,10 @@ def start():
     next_nums()
     music_game = [music['game_1.ogg'], music['game_2.ogg'], music['game_3.ogg']]
     random.shuffle(music_game)
-    pygame.mixer.music.load(music_game[0])
-    pygame.mixer.music.play(-1)
+    pygame.mixer.music.queue(music_game[0])
     pygame.mixer.music.queue(music_game[1])
-    pygame.mixer.music.queue(music_game[2])
+    pygame.mixer.music.load(music_game[2])
+    pygame.mixer.music.play(-1)
     while running:
         sound_played = 0
         TIME = time.time()
