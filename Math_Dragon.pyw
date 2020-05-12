@@ -363,6 +363,7 @@ all_sprites.add(player)
 all_sprites.add(warn)
 detect = True
 LIFES = 3
+LIFES_CONST = 3
 sound_played = 0
 QUIT_TEXT = 'Вы проиграли!'
 
@@ -380,14 +381,12 @@ def set_difficulty(c=None, val=None, name=None):
         SPEED_EX = lst[c[0]]['speed']
         mx = lst[c[0]]['mx']
         difficulty = c[0]
-        LIFES = lst[c[0]]['lifes']
     else:
         SPEED_EX_NEXT_SCORE = lst[name]['ex_next']
         EX_ADD = lst[name]['ex']
         SPEED_EX = lst[name]['speed']
         mx = lst[name]['mx']
         difficulty = name
-        LIFES = lst[name]['lifes']
 
 # Цикл игры
 running = True
@@ -429,8 +428,11 @@ def start():
 
         if pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_w]:
               player.up()
-        elif pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s]:
+        if pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s]:
               player.down()
+        if pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_a] or pygame.key.get_pressed()[pygame.K_d]:
+              for e in ex:
+                  e.rect.x -= -SPEED_EX + 1
         for e in ex:
             if e.rect.x <= 0 - e.image.get_width():
                 NEXT_EX += 1
@@ -515,6 +517,7 @@ def start():
     SPEED_EX = -1
     BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
     SPEED_Y = 5
+    LIFES = LIFES_CONST
     player.rect.center = (int(WIDTH / 8), int(HEIGHT / 2))
     pygame.mixer.music.load(music['menu.ogg'])
     pygame.mixer.music.play(-1)
@@ -523,6 +526,14 @@ def start():
 def set_name(name):
     global username
     username = name
+
+def set_lifes(inp):
+    global LIFES, LIFES_CONST
+    try:
+        LIFES = int(inp)
+    except:
+        LIFES = 3
+    LIFES_CONST = LIFES
 
 # музыка меню
 pygame.mixer.music.load(music['menu.ogg'])
@@ -542,6 +553,7 @@ menu = pygame_menu.Menu(400, 600, 'Math Dragon',
                         theme=menu_theme)
 menu.add_text_input('Name: ', default=username, onchange=set_name)
 menu.add_selector('Difficulty: ', [('Easy', 1), ('Medium', 2), ('Hard', 3)], onchange=set_difficulty)
+menu.add_text_input('Lifes: ', default='3', onchange=set_lifes)
 menu.add_button('Play', start)
 menu.add_button('Quit', quit_game)
 
