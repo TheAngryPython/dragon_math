@@ -395,6 +395,7 @@ def start():
     while running:
         sound_played = 0
         TIME = time.time()
+
         # смена фона по таймеру
         if bgtime < TIME - 90:
             BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
@@ -416,7 +417,7 @@ def start():
 
         if pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_w]:
               player.up()
-        if pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s]:
+        elif pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s]:
               player.down()
         for e in ex:
             if e.rect.x <= 0 - e.image.get_width():
@@ -427,6 +428,8 @@ def start():
                 NEXT_EX = 0
             if e.rect.x + SPEED_EX <= player.rect.x <= e.rect.x - SPEED_EX and detect:
                 detect = False
+                if -SPEED_EX >= SPEED_Y:
+                    SPEED_Y += 1
                 if 0 < player.rect.y <= (HEIGHT / 3):
                     PLAYER_LEVEL = 0
                 elif (HEIGHT / 3) < player.rect.y <= (HEIGHT / 3 * 2):
@@ -495,6 +498,7 @@ def start():
     record_played = False
     score = 0
     SPEED_EX = -1
+    SPEED_Y = 5
     pygame.mixer.music.load(music['menu.ogg'])
     pygame.mixer.music.play(-1)
     set_difficulty(name=difficulty)
