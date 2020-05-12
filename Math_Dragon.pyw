@@ -128,6 +128,8 @@ SPEED_EX = -1
 SPEED_EX_NEXT = 0
 SPEED_EX_NEXT_SCORE = 3
 EX_ADD = 1
+TIME = time.time()
+NEXT_EX = 0
 
 # прозрачная поверхность
 class Foreground(pygame.sprite.Sprite):
@@ -138,15 +140,17 @@ class Foreground(pygame.sprite.Sprite):
         self.image.set_alpha(0)
         self.alpha = 0
         self.step = 0
-        self.time = time.time()
+        self.time = TIME
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = (0, 0)
         self.type = 'none'
         self.event = 'idle'
+        self.alpha_to = 60
 
     def update(self):
         if self.event == 'warn' and self.step != 6:
             self.step += 1
+            self.alpha = self.alpha_to / self.step
             self.image.set_alpha(self.alpha)
         elif self.event == 'warn':
             self.type = 'none'
@@ -155,7 +159,7 @@ class Foreground(pygame.sprite.Sprite):
             self.image.set_alpha(self.alpha)
 
     def warn(self):
-        self.alpha = 30
+        self.alpha = self.alpha_to
         self.event = 'warn'
 
 # фон
@@ -171,7 +175,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.level = 2
-        self.time = time.time()
+        self.time = TIME
         self.im = 1
         self.images = [pygame.image.load(os.path.join(img_folder, 'player-'+str(i)+'.png')).convert_alpha() for i in [1,2,3,4]]
         self.image = self.images[0]
@@ -197,9 +201,9 @@ class Player(pygame.sprite.Sprite):
         else:
             self.rot -= 1
             self.image = pygame.transform.rotate(self.images[self.im], self.rot)
-        if self.time < (time.time() - self.anim_speed):
+        if self.time < (TIME- self.anim_speed):
             self.image = pygame.transform.rotate(self.images[self.im], self.rot)
-            self.time = time.time()
+            self.time = TIME
             self.im += 1
             if self.im > 3:
                 self.im = 0
@@ -378,9 +382,9 @@ def set_difficulty(c=None, val=None, name=None):
 running = True
 def start():
     # exec(eval('global '+', '.join(make_global(*globals()))))
-    global warn, sound_played, QUIT_TEXT, LIFES, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running
+    global NEXT_EX, TIME, warn, sound_played, QUIT_TEXT, LIFES, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running
 
-    bgtime = time.time()
+    bgtime = TIME
     config['games'] += 1
     next_nums()
     pygame.mixer.music.load(music['game_1.ogg'])
@@ -389,10 +393,11 @@ def start():
     pygame.mixer.music.queue(music['game_3.ogg'])
     while running:
         sound_played = 0
+        TIME = time.time()
         # смена фона по таймеру
-        if bgtime < time.time() - 90:
+        if bgtime < TIME - 90:
             BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
-            bgtime = time.time()
+            bgtime = TIME
 
         # Держим цикл на правильной скорости
         clock.tick(FPS)
@@ -414,8 +419,11 @@ def start():
               player.down()
         for e in ex:
             if e.rect.x <= 0 - e.image.get_width():
+                NEXT_EX += 1
                 next_nums()
                 break
+            else:
+                NEXT_EX = 0
             if e.rect.x + SPEED_EX <= player.rect.x <= e.rect.x - SPEED_EX and detect:
                 detect = False
                 if 0 < player.rect.y <= (HEIGHT / 3):
