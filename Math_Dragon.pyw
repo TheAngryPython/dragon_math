@@ -150,7 +150,6 @@ class Foreground(pygame.sprite.Sprite):
     def update(self):
         if self.event == 'warn' and self.step != 6:
             self.step += 1
-            self.alpha = self.alpha_to / self.step
             self.image.set_alpha(self.alpha)
         elif self.event == 'warn':
             self.type = 'none'
@@ -387,10 +386,12 @@ def start():
     bgtime = TIME
     config['games'] += 1
     next_nums()
-    pygame.mixer.music.load(music['game_1.ogg'])
+    music_game = [music['game_1.ogg'], music['game_2.ogg'], music['game_3.ogg']]
+    random.shuffle(music_game)
+    pygame.mixer.music.load(music_game[0])
     pygame.mixer.music.play(-1)
-    pygame.mixer.music.queue(music['game_2.ogg'])
-    pygame.mixer.music.queue(music['game_3.ogg'])
+    pygame.mixer.music.queue(music_game[1])
+    pygame.mixer.music.queue(music_game[2])
     while running:
         sound_played = 0
         TIME = time.time()
