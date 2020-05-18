@@ -5,7 +5,7 @@ import time, threading
 import os
 
 update = True
-version = '0.1.1'
+version = '0.1.0'
 
 versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
 if versions['stable'] != version and update:
@@ -34,7 +34,10 @@ if versions['stable'] != version and update:
             dir = os.listdir(l)
             for name in dir:
                 if os.path.isdir(os.path.join(l, name)):
-                    os.makedirs(os.path.join(folder, name))
+                    try:
+                        os.makedirs(os.path.join(folder, name))
+                    except:
+                        pass
                     ld(os.path.join(l, name), os.path.join(folder, name))
                 else:
                     text.insert(1.0, '\n'+name)
