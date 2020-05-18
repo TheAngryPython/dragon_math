@@ -5,7 +5,7 @@ import time, threading
 import os
 
 update = True
-version = '0.1.1'
+version = '0.1.0'
 
 versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
 if versions['stable'] != version and update:
@@ -36,7 +36,12 @@ if versions['stable'] != version and update:
                 if os.path.isdir(os.path.join(l, name)):
                     ld(os.path.join(l, name), os.path.join(folder, name))
                 else:
+<<<<<<< HEAD
                     text.insert(1.0, '\n'+name)
+=======
+                    text.delete('1.0', END)   # Удалим всё
+                    text.insert(1.0, name)
+>>>>>>> f9a7bdef6c9304028d440973924c5739916a3cee
                     try:
                         try:
                             os.remove(os.path.join(folder, name))
