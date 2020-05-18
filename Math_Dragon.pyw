@@ -1,10 +1,61 @@
+# обновление
+import requests
+import json
+import time, threading
+import os
+
+update=False
+version = '0.0.0'
+
+versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
+if versions['stable'] != version and update:
+    from tkinter import *
+    import tkinter.ttk as ttk
+    import zipfile
+    root = Tk()
+    text = Text(width=25, height=5, wrap=WORD)
+    text.pack()
+
+    def progress():
+        text.insert(1.0, f'Downloading version {versions["stable"]}')
+        f = open(f'update-{versions["stable"]}.zip', 'wb')
+        f.write(requests.get(versions["path"]).content)
+        f.close()
+        text.delete('1.0', END)   # Удалим всё
+        text.insert(1.0, f'Unpacking')
+        z = zipfile.ZipFile(f'update-{versions["stable"]}.zip', 'r')
+        z.extractall('update')
+        z.close()
+        os.remove(f'update-{versions["stable"]}.zip')
+        text.delete('1.0', END)   # Удалим всё
+        text.insert(1.0, f'Applying')
+        folder = os.path.dirname(os.path.realpath('__file__'))
+        zip = os.path.join(os.path.join(folder, 'update'), os.listdir(os.path.join(folder, 'update'))[0])
+        print(zip)
+        dir = os.listdir(zip)
+        for name in dir:
+            text.delete('1.0', END)   # Удалим всё
+            text.insert(1.0, name)
+            try:
+                try:
+                    os.remove(os.path.join(folder, name))
+                except:
+                    pass
+                os.rename(os.path.join(zip, name), os.path.join(folder, name))
+                os.remove(os.path.join(zip, name))
+            except:
+                pass
+        text.delete('1.0', END)   # Удалим всё
+        text.insert(1.0, 'DONE! restart program')
+        time.sleep(5)
+
+    threading.Thread(target=progress).start()
+    root.mainloop()
+
 import pygame
 import pygame_menu
 import random
 from pygame.locals import *
-import os
-import time
-import json
 from socket import gethostname
 import pyAesCrypt
 import io
@@ -117,6 +168,7 @@ music = {name: os.path.join(music_folder, name) for name in os.listdir(music_fol
 
 # Задаем цвета
 WHITE = (255, 255, 255)
+WHITE_GRAY = (225, 225, 225)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -128,6 +180,8 @@ SPEED_EX = -1
 SPEED_EX_NEXT = 0
 SPEED_EX_NEXT_SCORE = 3
 EX_ADD = 1
+TIME = time.time()
+NEXT_EX = 0
 
 # прозрачная поверхность
 class Foreground(pygame.sprite.Sprite):
@@ -138,11 +192,12 @@ class Foreground(pygame.sprite.Sprite):
         self.image.set_alpha(0)
         self.alpha = 0
         self.step = 0
-        self.time = time.time()
+        self.time = TIME
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = (0, 0)
         self.type = 'none'
         self.event = 'idle'
+        self.alpha_to = 60
 
     def update(self):
         if self.event == 'warn' and self.step != 6:
@@ -155,7 +210,7 @@ class Foreground(pygame.sprite.Sprite):
             self.image.set_alpha(self.alpha)
 
     def warn(self):
-        self.alpha = 30
+        self.alpha = self.alpha_to
         self.event = 'warn'
 
 # фон
@@ -171,7 +226,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.level = 2
-        self.time = time.time()
+        self.time = TIME
         self.im = 1
         self.images = [pygame.image.load(os.path.join(img_folder, 'player-'+str(i)+'.png')).convert_alpha() for i in [1,2,3,4]]
         self.image = self.images[0]
@@ -197,9 +252,9 @@ class Player(pygame.sprite.Sprite):
         else:
             self.rot -= 1
             self.image = pygame.transform.rotate(self.images[self.im], self.rot)
-        if self.time < (time.time() - self.anim_speed):
+        if self.time < (TIME - self.anim_speed):
             self.image = pygame.transform.rotate(self.images[self.im], self.rot)
-            self.time = time.time()
+            self.time = TIME
             self.im += 1
             if self.im > 3:
                 self.im = 0
@@ -225,12 +280,15 @@ class Player(pygame.sprite.Sprite):
 
 # ответы
 class Ex(pygame.sprite.Sprite):
-    def __init__(self, text, level, width = 75, height = 75, true = False):
+    def __init__(self, text, level, true):
         lvls = [75, 200, 325]
+        width = 75
+        height = 75
         width = 30 * len(text)
         pygame.sprite.Sprite.__init__(self)
         self.true = true
         self.temp = 0
+        self.text = text
         self.level_y = level
         self.font = pygame.font.Font(ex_font, 50)
         self.textSurf = self.font.render(text, 1, WHITE)
@@ -244,8 +302,16 @@ class Ex(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += SPEED_EX
 
-    def __str__(self):
-        return 'ex'
+    def show(self):
+        if self.true:
+            self.textSurf = self.font.render(self.text, 1, GREEN)
+        else:
+            self.textSurf = self.font.render(self.text, 1, RED)
+        width = 30 * len(self.text)
+        self.image = pygame.Surface([width, 75], pygame.SRCALPHA, 32).convert_alpha()
+        W = self.textSurf.get_width()
+        H = self.textSurf.get_height()
+        self.image.blit(self.textSurf, [width/2 - W/2, 75/2 - H/2])
 
 def is_simple(num):
     nms = [(num / i, int(num / i), i) for i in range(mn + 2, mx + 1)]
@@ -281,7 +347,7 @@ def generate_true(num):
         sep = '/'
         nm1 = random.choice(is_simple(num)[1])
         nm = int(num * nm1)
-    return (nm, nm1, sep)
+    return (nm, nm1, sep, True)
 
 # генерировать не правильный ответ
 def generate_false(num):
@@ -296,7 +362,7 @@ def generate_false(num):
         if nm + nm1 != num and nm - nm1 != num and nm / nm1 != num and nm * nm1 != num:
             break
 
-    return (nm, nm1, sep)
+    return (nm, nm1, sep, False)
 
 ex = []
 t_num = 0
@@ -328,7 +394,7 @@ def next_nums():
     ex = []
 
     for i in range(3):
-        ex.append(Ex(f'{nums[i][0]} {nums[i][2]} {nums[i][1]}', i))
+        ex.append(Ex(f'{nums[i][0]} {nums[i][2]} {nums[i][1]}', i, nums[i][3]))
 
     for e in ex:
         all_sprites.add(e)
@@ -348,6 +414,7 @@ all_sprites.add(player)
 all_sprites.add(warn)
 detect = True
 LIFES = 3
+LIFES_CONST = 3
 sound_played = 0
 QUIT_TEXT = 'Вы проиграли!'
 
@@ -365,34 +432,36 @@ def set_difficulty(c=None, val=None, name=None):
         SPEED_EX = lst[c[0]]['speed']
         mx = lst[c[0]]['mx']
         difficulty = c[0]
-        LIFES = lst[c[0]]['lifes']
     else:
         SPEED_EX_NEXT_SCORE = lst[name]['ex_next']
         EX_ADD = lst[name]['ex']
         SPEED_EX = lst[name]['speed']
         mx = lst[name]['mx']
         difficulty = name
-        LIFES = lst[name]['lifes']
 
 # Цикл игры
 running = True
 def start():
     # exec(eval('global '+', '.join(make_global(*globals()))))
-    global warn, sound_played, QUIT_TEXT, LIFES, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running
-
-    bgtime = time.time()
+    global NEXT_EX, TIME, warn, sound_played, QUIT_TEXT, LIFES, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running
+    TIME = time.time()
+    # bgtime = TIME
     config['games'] += 1
     next_nums()
-    pygame.mixer.music.load(music['game_1.ogg'])
+    music_game = [music['game_1.ogg'], music['game_2.ogg'], music['game_3.ogg']]
+    random.shuffle(music_game)
+    pygame.mixer.music.queue(music_game[0])
+    pygame.mixer.music.queue(music_game[1])
+    pygame.mixer.music.load(music_game[2])
     pygame.mixer.music.play(-1)
-    pygame.mixer.music.queue(music['game_2.ogg'])
-    pygame.mixer.music.queue(music['game_3.ogg'])
     while running:
         sound_played = 0
-        # смена фона по таймеру
-        if bgtime < time.time() - 90:
-            BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
-            bgtime = time.time()
+        TIME = time.time()
+
+        # # смена фона по таймеру
+        # if bgtime < TIME - 90:
+        #     BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
+        #     bgtime = TIME
 
         # Держим цикл на правильной скорости
         clock.tick(FPS)
@@ -412,18 +481,29 @@ def start():
               player.up()
         if pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s]:
               player.down()
+        if pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_a] or pygame.key.get_pressed()[pygame.K_d]:
+              for e in ex:
+                  e.rect.x -= -SPEED_EX + 1
         for e in ex:
             if e.rect.x <= 0 - e.image.get_width():
-                next_nums()
-                break
+                NEXT_EX += 1
+                if NEXT_EX == len(ex):
+                    next_nums()
+                    break
+            else:
+                NEXT_EX = 0
             if e.rect.x + SPEED_EX <= player.rect.x <= e.rect.x - SPEED_EX and detect:
                 detect = False
-                if 0 < player.rect.y <= (HEIGHT / 3):
+                if -SPEED_EX >= SPEED_Y:
+                    SPEED_Y += 1
+                if 0 < player.rect.y + 50 <= (HEIGHT / 3):
                     PLAYER_LEVEL = 0
-                elif (HEIGHT / 3) < player.rect.y <= (HEIGHT / 3 * 2):
+                elif (HEIGHT / 3) < player.rect.y + 50 <= (HEIGHT / 3 * 2):
                     PLAYER_LEVEL = 1
                 else:
                     PLAYER_LEVEL = 2
+                for e in ex:
+                    e.show()
                 if PLAYER_LEVEL == t_num:
                     score += EX_ADD
                     if score > config['record']:
@@ -433,7 +513,7 @@ def start():
                             sound_played = 1
                         config['record'] = score
                         config['record_name'] = username
-                    SPEED_EX_NEXT += 1
+                    SPEED_EX_NEXT += EX_ADD
                     if SPEED_EX_NEXT == SPEED_EX_NEXT_SCORE:
                         random.choice(sounds['speed_up']).play()
                         SPEED_EX -= 1
@@ -456,17 +536,17 @@ def start():
         all_sprites.update()
         screen.blit(BackGround.image, BackGround.rect)
         f1 = pygame.font.Font(ex_font, 30)
-        score_text = f1.render('Счёт: '+str(score), 1, WHITE)
+        score_text = f1.render('Счёт: '+str(score), 1, WHITE_GRAY)
         screen.blit(score_text, (10, 0))
-        num_text = f1.render('Получится: '+str(a_num), 1, WHITE)
+        num_text = f1.render('Получится: '+str(a_num), 1, WHITE_GRAY)
         screen.blit(num_text, (10, 35))
-        record_text = f1.render('Рекорд '+str(config['record_name'])+': '+str(config['record']), 1, WHITE)
+        record_text = f1.render('Рекорд '+str(config['record_name'])+': '+str(config['record']), 1, WHITE_GRAY)
         screen.blit(record_text, (10, 70))
-        record_text = f1.render('Всего игр: '+str(config['games']), 1, WHITE)
+        record_text = f1.render('Всего игр: '+str(config['games']), 1, WHITE_GRAY)
         screen.blit(record_text, (10, 105))
-        speed_text = f1.render('Скорость: '+str(-1 * SPEED_EX), 1, WHITE)
+        speed_text = f1.render('Скорость: '+str(-1 * SPEED_EX), 1, WHITE_GRAY)
         screen.blit(speed_text, (10, 140))
-        lifes_text = f1.render('Ошибок осталось: '+str(LIFES), 1, WHITE)
+        lifes_text = f1.render('Ошибок осталось: '+str(LIFES), 1, WHITE_GRAY)
         screen.blit(lifes_text, (10, 175))
 
         # Рендеринг
@@ -486,6 +566,10 @@ def start():
     record_played = False
     score = 0
     SPEED_EX = -1
+    BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
+    SPEED_Y = 5
+    LIFES = LIFES_CONST
+    player.rect.center = (int(WIDTH / 8), int(HEIGHT / 2))
     pygame.mixer.music.load(music['menu.ogg'])
     pygame.mixer.music.play(-1)
     set_difficulty(name=difficulty)
@@ -493,6 +577,14 @@ def start():
 def set_name(name):
     global username
     username = name
+
+def set_lifes(inp):
+    global LIFES, LIFES_CONST
+    try:
+        LIFES = int(inp)
+    except:
+        LIFES = 3
+    LIFES_CONST = LIFES
 
 # музыка меню
 pygame.mixer.music.load(music['menu.ogg'])
@@ -512,6 +604,7 @@ menu = pygame_menu.Menu(400, 600, 'Math Dragon',
                         theme=menu_theme)
 menu.add_text_input('Name: ', default=username, onchange=set_name)
 menu.add_selector('Difficulty: ', [('Easy', 1), ('Medium', 2), ('Hard', 3)], onchange=set_difficulty)
+menu.add_text_input('Lifes: ', default='3', onchange=set_lifes)
 menu.add_button('Play', start)
 menu.add_button('Quit', quit_game)
 
