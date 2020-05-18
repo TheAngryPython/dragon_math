@@ -34,6 +34,7 @@ if versions['stable'] != version and update:
             dir = os.listdir(l)
             for name in dir:
                 if os.path.isdir(os.path.join(l, name)):
+                    os.makedirs(os.path.join(folder, name))
                     ld(os.path.join(l, name), os.path.join(folder, name))
                 else:
                     text.insert(1.0, '\n'+name)
