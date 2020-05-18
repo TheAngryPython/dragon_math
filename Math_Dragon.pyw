@@ -22,33 +22,34 @@ if versions['stable'] != version and update:
         f = open(f'update-{versions["stable"]}.zip', 'wb')
         f.write(requests.get(versions["path"]).content)
         f.close()
-        text.delete('1.0', END)   # Удалим всё
-        text.insert(1.0, f'Unpacking')
+        text.insert(1.0, f'\nUnpacking')
         z = zipfile.ZipFile(f'update-{versions["stable"]}.zip', 'r')
         z.extractall('update')
         z.close()
         os.remove(f'update-{versions["stable"]}.zip')
-        text.delete('1.0', END)   # Удалим всё
-        text.insert(1.0, f'Applying')
+        text.insert(1.0, f'\nApplying')
         folder = os.path.dirname(os.path.realpath('__file__'))
         zip = os.path.join(os.path.join(folder, 'update'), os.listdir(os.path.join(folder, 'update'))[0])
-        dir = os.listdir(zip)
-        for name in dir:
-            text.delete('1.0', END)   # Удалим всё
-            text.insert(1.0, name)
-            try:
-                try:
-                    os.remove(os.path.join(folder, name))
-                except:
-                    pass
-                os.rename(os.path.join(zip, name), os.path.join(folder, name))
-                os.remove(os.path.join(zip, name))
-            except:
-                pass
+        def ld(l, folder=os.path.dirname(os.path.realpath('__file__'))):
+            dir = os.listdir(l)
+            for name in dir:
+                if os.path.isdir(os.path.join(l, name)):
+                    ld(os.path.join(l, name), os.path.join(folder, name))
+                else:
+                    text.insert(1.0, '\n'+name)
+                    try:
+                        try:
+                            os.remove(os.path.join(folder, name))
+                        except:
+                            pass
+                        os.rename(os.path.join(l, name), os.path.join(folder, name))
+                        os.remove(os.path.join(l, name))
+                    except:
+                        pass
+        ld(zip)
         shutil.rmtree(os.path.join(os.path.join(folder, 'update')))
-        text.delete('1.0', END)   # Удалим всё
-        text.insert(1.0, 'DONE! restart program')
-        time.sleep(10)
+        text.insert(1.0, '\n\nDONE! restart program')
+        time.sleep(9999999)
         quit()
 
     threading.Thread(target=progress).start()
