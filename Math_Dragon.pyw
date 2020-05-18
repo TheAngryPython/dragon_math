@@ -5,7 +5,7 @@ import time, threading
 import os
 
 update = True
-version = '0.1.1'
+version = '0.1.0'
 
 versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
 if versions['stable'] != version and update:
@@ -32,19 +32,24 @@ if versions['stable'] != version and update:
         text.insert(1.0, f'Applying')
         folder = os.path.dirname(os.path.realpath('__file__'))
         zip = os.path.join(os.path.join(folder, 'update'), os.listdir(os.path.join(folder, 'update'))[0])
-        dir = os.listdir(zip)
-        for name in dir:
-            text.delete('1.0', END)   # Удалим всё
-            text.insert(1.0, name)
-            try:
-                try:
-                    os.remove(os.path.join(folder, name))
-                except:
-                    pass
-                os.rename(os.path.join(zip, name), os.path.join(folder, name))
-                os.remove(os.path.join(zip, name))
-            except:
-                pass
+        def ld(l, folder=os.path.dirname(os.path.realpath('__file__'))):
+            dir = os.listdir(l)
+            for name in dir:
+                if os.path.isdir(os.path.join(l, name)):
+                    ld(os.path.join(l, name), os.path.join(folder, name))
+                else:
+                    text.delete('1.0', END)   # Удалим всё
+                    text.insert(1.0, name)
+                    try:
+                        try:
+                            os.remove(os.path.join(folder, name))
+                        except:
+                            pass
+                        os.rename(os.path.join(l, name), os.path.join(folder, name))
+                        os.remove(os.path.join(l, name))
+                    except:
+                        pass
+        ld(zip)
         shutil.rmtree(os.path.join(os.path.join(folder, 'update')))
         text.delete('1.0', END)   # Удалим всё
         text.insert(1.0, 'DONE! restart program')
