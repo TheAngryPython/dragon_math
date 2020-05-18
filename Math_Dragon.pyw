@@ -54,6 +54,7 @@ if versions['stable'] != version and update:
 
     threading.Thread(target=progress).start()
     root.mainloop()
+    quit()
 
 import pygame
 import pygame_menu
