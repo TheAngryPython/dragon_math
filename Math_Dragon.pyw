@@ -5,7 +5,7 @@ import time, threading
 import os
 
 update = True
-version = '0.1.0'
+version = '0.1.1'
 
 versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
 if versions['stable'] != version and update:
