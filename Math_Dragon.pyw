@@ -4,8 +4,8 @@ import json
 import time, threading
 import os
 
-update=False
-version = '0.1.0'
+update = True
+version = '0.1.1'
 
 versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
 if versions['stable'] != version and update:
@@ -48,7 +48,8 @@ if versions['stable'] != version and update:
         shutil.rmtree(os.path.join(os.path.join(folder, 'update')))
         text.delete('1.0', END)   # Удалим всё
         text.insert(1.0, 'DONE! restart program')
-        time.sleep(5)
+        time.sleep(10)
+        quit()
 
     threading.Thread(target=progress).start()
     root.mainloop()
