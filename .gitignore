@@ -3,3 +3,4 @@ lib
 *.dll
 build
 *.lnk
+update*
