@@ -4,41 +4,35 @@ import json
 import time, threading
 import os
 
+update=False
 version = '0.0.0'
 
 versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
-if versions['stable'] != version:
+if versions['stable'] != version and update:
     from tkinter import *
     import tkinter.ttk as ttk
     import zipfile
     root = Tk()
-
-    pb = ttk.Progressbar(root, mode="determinate")
-    pb.pack()
     text = Text(width=25, height=5, wrap=WORD)
     text.pack()
 
     def progress():
-        pb['value'] = 0
         text.insert(1.0, f'Downloading version {versions["stable"]}')
         f = open(f'update-{versions["stable"]}.zip', 'wb')
         f.write(requests.get(versions["path"]).content)
         f.close()
-        pb['value'] = 4
         text.delete('1.0', END)   # Удалим всё
         text.insert(1.0, f'Unpacking')
         z = zipfile.ZipFile(f'update-{versions["stable"]}.zip', 'r')
         z.extractall('update')
         z.close()
         os.remove(f'update-{versions["stable"]}.zip')
-        pb['value'] = 8
         text.delete('1.0', END)   # Удалим всё
         text.insert(1.0, f'Applying')
         folder = os.path.dirname(os.path.realpath('__file__'))
         zip = os.path.join(os.path.join(folder, 'update'), os.listdir(os.path.join(folder, 'update'))[0])
         print(zip)
         dir = os.listdir(zip)
-        pb['value'] = 14
         for name in dir:
             text.delete('1.0', END)   # Удалим всё
             text.insert(1.0, name)
@@ -51,6 +45,9 @@ if versions['stable'] != version:
                 os.remove(os.path.join(zip, name))
             except:
                 pass
+        text.delete('1.0', END)   # Удалим всё
+        text.insert(1.0, 'DONE! restart program')
+        time.sleep(5)
 
     threading.Thread(target=progress).start()
     root.mainloop()
