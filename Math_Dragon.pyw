@@ -12,6 +12,7 @@ if versions['stable'] != version and update:
     from tkinter import *
     import tkinter.ttk as ttk
     import zipfile
+    import shutil
     root = Tk()
     text = Text(width=25, height=5, wrap=WORD)
     text.pack()
@@ -31,7 +32,6 @@ if versions['stable'] != version and update:
         text.insert(1.0, f'Applying')
         folder = os.path.dirname(os.path.realpath('__file__'))
         zip = os.path.join(os.path.join(folder, 'update'), os.listdir(os.path.join(folder, 'update'))[0])
-        print(zip)
         dir = os.listdir(zip)
         for name in dir:
             text.delete('1.0', END)   # Удалим всё
@@ -45,6 +45,7 @@ if versions['stable'] != version and update:
                 os.remove(os.path.join(zip, name))
             except:
                 pass
+        shutil.rmtree(os.path.join(os.path.join(folder, 'update')))
         text.delete('1.0', END)   # Удалим всё
         text.insert(1.0, 'DONE! restart program')
         time.sleep(5)
