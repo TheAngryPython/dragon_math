@@ -5,60 +5,63 @@ import time, threading
 import os
 
 update = True
-version = '0.1.1'
+version = '0.1.2'
 
-versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
-if versions['stable'] != version and update:
-    from tkinter import *
-    import tkinter.ttk as ttk
-    import zipfile
-    import shutil
-    root = Tk()
-    text = Text(width=25, height=5, wrap=WORD)
-    text.pack()
+try:
+    versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
+    if versions['stable'] != version and update:
+        from tkinter import *
+        import tkinter.ttk as ttk
+        import zipfile
+        import shutil
+        root = Tk()
+        text = Text(width=25, height=5, wrap=WORD)
+        text.pack()
 
-    def progress():
-        text.insert(1.0, f'Downloading version {versions["stable"]}')
-        f = open(f'update-{versions["stable"]}.zip', 'wb')
-        f.write(requests.get(versions["path"]).content)
-        f.close()
-        text.insert(1.0, f'\nUnpacking')
-        z = zipfile.ZipFile(f'update-{versions["stable"]}.zip', 'r')
-        z.extractall('update')
-        z.close()
-        os.remove(f'update-{versions["stable"]}.zip')
-        text.insert(1.0, f'\nApplying')
-        folder = os.path.dirname(os.path.realpath('__file__'))
-        zip = os.path.join(os.path.join(folder, 'update'), os.listdir(os.path.join(folder, 'update'))[0])
-        def ld(l, folder=os.path.dirname(os.path.realpath('__file__'))):
-            dir = os.listdir(l)
-            for name in dir:
-                if os.path.isdir(os.path.join(l, name)):
-                    try:
-                        os.makedirs(os.path.join(folder, name))
-                    except:
-                        pass
-                    ld(os.path.join(l, name), os.path.join(folder, name))
-                else:
-                    text.insert(1.0, '\n'+name)
-                    try:
+        def progress():
+            text.insert(1.0, f'Downloading version {versions["stable"]}')
+            f = open(f'update-{versions["stable"]}.zip', 'wb')
+            f.write(requests.get(versions["path"]).content)
+            f.close()
+            text.insert(1.0, f'\nUnpacking')
+            z = zipfile.ZipFile(f'update-{versions["stable"]}.zip', 'r')
+            z.extractall('update')
+            z.close()
+            os.remove(f'update-{versions["stable"]}.zip')
+            text.insert(1.0, f'\nApplying')
+            folder = os.path.dirname(os.path.realpath('__file__'))
+            zip = os.path.join(os.path.join(folder, 'update'), os.listdir(os.path.join(folder, 'update'))[0])
+            def ld(l, folder=os.path.dirname(os.path.realpath('__file__'))):
+                dir = os.listdir(l)
+                for name in dir:
+                    if os.path.isdir(os.path.join(l, name)):
                         try:
-                            os.remove(os.path.join(folder, name))
+                            os.makedirs(os.path.join(folder, name))
                         except:
                             pass
-                        os.rename(os.path.join(l, name), os.path.join(folder, name))
-                        os.remove(os.path.join(l, name))
-                    except:
-                        pass
-        ld(zip)
-        shutil.rmtree(os.path.join(os.path.join(folder, 'update')))
-        text.insert(1.0, '\n\nDONE! restart program')
-        time.sleep(9999999)
-        quit()
+                        ld(os.path.join(l, name), os.path.join(folder, name))
+                    else:
+                        text.insert(1.0, '\n'+name)
+                        try:
+                            try:
+                                os.remove(os.path.join(folder, name))
+                            except:
+                                pass
+                            os.rename(os.path.join(l, name), os.path.join(folder, name))
+                            os.remove(os.path.join(l, name))
+                        except:
+                            pass
+            ld(zip)
+            shutil.rmtree(os.path.join(os.path.join(folder, 'update')))
+            text.insert(1.0, '\n\nDONE! restart program')
+            time.sleep(9999999)
+            quit()
 
-    threading.Thread(target=progress).start()
-    root.mainloop()
-    quit()
+        threading.Thread(target=progress).start()
+        root.mainloop()
+        quit()
+except:
+    pass
 
 import pygame
 import pygame_menu
