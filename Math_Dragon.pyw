@@ -5,7 +5,8 @@ import time, threading
 import os
 
 update = True
-version = '0.1.2'
+updated = False
+version = '0.1.3'
 
 try:
     versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
@@ -54,6 +55,7 @@ try:
             ld(zip)
             shutil.rmtree(os.path.join(os.path.join(folder, 'update')))
             text.insert(1.0, '\n\nDONE! restart program')
+            updated = True
             time.sleep(9999999)
             quit()
 
@@ -62,6 +64,9 @@ try:
         quit()
 except:
     pass
+
+if updated:
+    quit()
 
 import pygame
 import pygame_menu
