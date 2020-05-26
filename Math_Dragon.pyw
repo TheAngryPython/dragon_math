@@ -76,6 +76,24 @@ from socket import gethostname
 import pyAesCrypt
 import io
 import logging
+import argparse
+import sys
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--mode', action='store', dest='mode')
+parser.add_argument('--ip', action='store', dest='ip')
+parser.add_argument('--port', action='store', dest='port')
+par = parser.parse_args()
+
+online = False
+
+if par.mode == 'online':
+    import client
+    online = True
+    players = []
+    client.ip = par.ip or 'localhost'
+    client.port = par.port or 9090
+    client.connect()
 
 # настройка сохранения конфига
 appdata_folder = os.path.join(os.environ['LOCALAPPDATA'], 'EgTer')
@@ -146,6 +164,8 @@ mn = 0
 mx = 9
 score = 0
 username = random.choice(['Drago', 'Math', 'pro', 'profi'])
+if online:
+    client.change_name(username)
 
 # Создаем игру и окно
 pygame.init()
@@ -459,8 +479,16 @@ def set_difficulty(c=None, val=None, name=None):
 running = True
 def start():
     # exec(eval('global '+', '.join(make_global(*globals()))))
-    global NEXT_EX, TIME, warn, sound_played, QUIT_TEXT, LIFES, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running
+    global NEXT_EX, TIME, warn, sound_played, QUIT_TEXT, LIFES, record_played, difficulty, set_difficulty, username, pygame, pygame_menu, random, color, os, time, json, appdata_folder, app_folder, config_file, f, config, cfg_save, WIDTH, HEIGHT, FPS, nums, a_num, mn, mx, score, screen, all_sprites, game_folder, assets_folder, img_folder, ex_img, fonts_folder, ex_font, bg_folder, WHITE, BLACK, RED, GREEN, BLUE, SPEED_Y, SPEED_EX, SPEED_EX_NEXT, Background, Player, Ex, generate_true, generate_false, ex, t_num, next_nums, detect, font, clock, player, BackGround, running, players
     TIME = time.time()
+    if online:
+        online_update = TIME
+        client.get_players()
+        players = []
+        for pl in client.players:
+            p = Player()
+            p.rect.y = pl['y']
+            players.append(p)
     # bgtime = TIME
     config['games'] += 1
     next_nums()
@@ -473,6 +501,26 @@ def start():
     while running:
         sound_played = 0
         TIME = time.time()
+
+        if online_update < TIME - 1:
+            print(client.players)
+            online_update = TIME
+            while 1:
+                try:
+                    players[0].kill()
+                    players.pop(0)
+                except:
+                    break
+            for pl in client.players:
+                p = Player()
+                p.rect.y = pl['y']
+                players.append(p)
+            client.get_players()
+            client.set_pos(player.rect.y)
+
+        if online:
+            for player in players:
+                player.update()
 
         # # смена фона по таймеру
         # if bgtime < TIME - 90:
@@ -590,9 +638,15 @@ def start():
     pygame.mixer.music.play(-1)
     set_difficulty(name=difficulty)
 
+def check_start():
+    if client.check_start():
+        start()
+
 def set_name(name):
     global username
     username = name
+    if online:
+        client.change_name(name)
 
 def set_lifes(inp):
     global LIFES, LIFES_CONST
@@ -619,9 +673,12 @@ menu_theme.background_color = menu_bg
 menu = pygame_menu.Menu(400, 600, 'Math Dragon',
                         theme=menu_theme)
 menu.add_text_input('Name: ', default=username, onchange=set_name)
-menu.add_selector('Difficulty: ', [('Easy', 1), ('Medium', 2), ('Hard', 3)], onchange=set_difficulty)
-menu.add_text_input('Lifes: ', default='3', onchange=set_lifes)
-menu.add_button('Play', start)
+if not online:
+    menu.add_selector('Difficulty: ', [('Easy', 1), ('Medium', 2), ('Hard', 3)], onchange=set_difficulty)
+    menu.add_text_input('Lifes: ', default='3', onchange=set_lifes)
+    menu.add_button('Play', start)
+else:
+    menu.add_button('Play', check_start)
 menu.add_button('Quit', quit_game)
 
 menu.mainloop(screen)
