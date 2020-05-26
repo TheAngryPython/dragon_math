@@ -11,6 +11,7 @@ version = '0.1.3'
 try:
     versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
     if versions['stable'] != version and update:
+        updated = True
         from tkinter import *
         import tkinter.ttk as ttk
         import zipfile
@@ -55,7 +56,6 @@ try:
             ld(zip)
             shutil.rmtree(os.path.join(os.path.join(folder, 'update')))
             text.insert(1.0, '\n\nDONE! restart program')
-            updated = True
             time.sleep(9999999)
             quit()
 
