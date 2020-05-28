@@ -7,7 +7,7 @@ import threading
 
 update = True
 updated = False
-version = '0.1.3'
+version = '0.2.0'
 
 try:
     versions = json.loads(requests.get('https://theangrypython.github.io/dm/versions.json').text)
