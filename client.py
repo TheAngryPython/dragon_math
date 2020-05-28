@@ -54,12 +54,13 @@ def send(s, q=0):
 def get_players():
     global players
     send({'com': 'get_players'})
-    for player in data['players']:
-        if player['id'] == id1:
+    print(data)
+    for i in range(len(data['players'])):
+        if data['players'][i]['id'] == id1:
+            del data['players'][i]
             break
-    else:
-        data['players'].pop(player)
     players = data['players']
+    return players
 
 def set_pos(y):
     send({'com':'set_pos', 'pos': y})
@@ -79,3 +80,19 @@ def check_start():
     send({'com':'check_start'})
     started = data['started']
     return started
+
+def next_nums():
+    send({'com': 'next_nums'})
+    return data['nums']
+
+def get_speed():
+    send({'com': 'get_speed'})
+    return data['speed']
+
+def check_answer(num):
+    send({'com': 'check_answer', 'num': num})
+    return data['num']
+
+if __name__ == '__main__':
+    connect()
+    get_players()

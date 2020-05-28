@@ -3,6 +3,7 @@ import requests
 import json
 import time, threading
 import os
+import threading
 
 update = True
 updated = False
@@ -502,26 +503,6 @@ def start():
         sound_played = 0
         TIME = time.time()
 
-        if online_update < TIME - 1:
-            print(client.players)
-            online_update = TIME
-            while 1:
-                try:
-                    players[0].kill()
-                    players.pop(0)
-                except:
-                    break
-            for pl in client.players:
-                p = Player()
-                p.rect.y = pl['y']
-                players.append(p)
-            client.get_players()
-            client.set_pos(player.rect.y)
-
-        if online:
-            for player in players:
-                player.update()
-
         # # смена фона по таймеру
         # if bgtime < TIME - 90:
         #     BackGround.image = pygame.image.load(os.path.join(bg_folder, random.choice(os.listdir(bg_folder)))).convert()
@@ -545,13 +526,35 @@ def start():
               player.up()
         if pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s]:
               player.down()
-        if pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_a] or pygame.key.get_pressed()[pygame.K_d]:
+        if not online and (pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_a] or pygame.key.get_pressed()[pygame.K_d]):
               for e in ex:
                   e.rect.x -= -SPEED_EX + 1
         for e in ex:
             if e.rect.x <= 0 - e.image.get_width():
                 NEXT_EX += 1
                 if NEXT_EX == len(ex):
+                    # if online:
+                    #     n = client.next_nums()
+                    #     for i in range(len(n[1])):
+                    #         if n[1][i] == n[2]:
+                    #             n[2] = i
+                    #
+                    #     while 1:
+                    #         try:
+                    #             ex[0].kill()
+                    #             ex.pop(0)
+                    #         except:
+                    #             break
+                    #
+                    #     ex = []
+                    #
+                    #     for i in range(3):
+                    #         ex.append(Ex(f'{n[1][i][0]} {n[1][i][2]} {n[1][i][1]}', i, n[1][i][3]))
+                    #
+                    #     for e in ex:
+                    #         all_sprites.add(e)
+                    # else:
+                    #     next_nums()
                     next_nums()
                     break
             else:
@@ -568,6 +571,8 @@ def start():
                     PLAYER_LEVEL = 2
                 for e in ex:
                     e.show()
+                if online:
+                    SPEED_EX -= 1
                 if PLAYER_LEVEL == t_num:
                     score += EX_ADD
                     if score > config['record']:
@@ -578,7 +583,7 @@ def start():
                         config['record'] = score
                         config['record_name'] = username
                     SPEED_EX_NEXT += EX_ADD
-                    if SPEED_EX_NEXT == SPEED_EX_NEXT_SCORE:
+                    if not online and SPEED_EX_NEXT == SPEED_EX_NEXT_SCORE:
                         random.choice(sounds['speed_up']).play()
                         SPEED_EX -= 1
                         SPEED_EX_NEXT = 0
@@ -598,6 +603,25 @@ def start():
 
         # Обновление
         all_sprites.update()
+
+        if online:
+            if online_update < TIME - 0.3:
+                online_update = TIME
+                while 1:
+                    try:
+                        players[0].kill()
+                        players.pop(0)
+                    except:
+                        break
+                for pl in client.players:
+                    p = Player()
+                    p.rect.y = pl['y']
+                    players.append(p)
+                    all_sprites.add(p)
+                client.get_players()
+                t2 = threading.Thread(target=client.set_pos, args=[player.rect.y])
+                t2.start()
+
         screen.blit(BackGround.image, BackGround.rect)
         f1 = pygame.font.Font(ex_font, 30)
         score_text = f1.render('Счёт: '+str(score), 1, WHITE_GRAY)
@@ -639,8 +663,11 @@ def start():
     set_difficulty(name=difficulty)
 
 def check_start():
-    if client.check_start():
-        start()
+    while True:
+        if client.check_start():
+            start()
+            break
+        time.sleep(0.1)
 
 def set_name(name):
     global username
