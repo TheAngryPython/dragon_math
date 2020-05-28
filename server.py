@@ -4,7 +4,7 @@
 players = {}
 settings = {
 'max players': 3,
-'port': 9090
+'port': int(input("port (9090): ") or 9090)
 }
 mn = 0
 mx = 9
